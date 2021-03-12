@@ -72,3 +72,16 @@ Plugins/*/Intermediate/*
 
 # Cache files for the editor to use
 DerivedDataCache/*
+
+# Assets
+Content/*
+
+# idea(?) folder
+.idea/*
+
+# Config 
+Config/*
+
+# Root files
+CPP_Inventory.sln
+CPP_Inventory.uproject

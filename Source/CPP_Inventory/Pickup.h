@@ -17,7 +17,7 @@ class CPP_INVENTORY_API APickup : public AInteractable
 public:
 	APickup();
 
-	virtual void BeginPlay() override;
+	virtual void BeginPlay();
 
 	virtual void Interact_Implementation() override;
 

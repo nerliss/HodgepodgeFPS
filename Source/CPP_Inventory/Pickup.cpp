@@ -18,6 +18,8 @@ APickup::APickup()
 
 void APickup::BeginPlay()
 {
+	Super::BeginPlay();
+
 	InteractableHelpText = FString::Printf(TEXT("%s: Press E to pick up."), *ItemName);
 }
 

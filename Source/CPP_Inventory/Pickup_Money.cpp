@@ -7,7 +7,7 @@
 
 APickup_Money::APickup_Money()
 {
-
+	Value = 0;
 }
 
 void APickup_Money::BeginPlay()

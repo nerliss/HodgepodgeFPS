@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
+#include "DrawDebugHelpers.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -118,6 +119,8 @@ void ACPP_InventoryCharacter::Tick(float DeltaTime)
 	Super::Tick(DeltaTime);
 
 	CheckForInteractables();
+
+	CheckForWall();
 
 }
 
@@ -428,5 +431,29 @@ void ACPP_InventoryCharacter::CheckForInteractables()
 		HelpText = PotentialInteractable->InteractableHelpText;
 	}
 
+}
+
+void ACPP_InventoryCharacter::CheckForWall()
+{
+	FVector Location;
+	FRotator Rotation;
+	FHitResult HitResult;
+
+	GetController()->GetPlayerViewPoint(Location, Rotation);
+
+	FVector Start = Location;
+	FVector End = Start + (Rotation.Vector() * 2000);
+
+	FCollisionQueryParams TraceParams;
+
+	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+
+// 	if (HitResult.Actor->ActorHasTag("Climbable"))
+// 	{
+// 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sosatb"));
+// 	}
+
+	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f);
+	DrawDebugSphere(GetWorld(), Start, 50.0f, 10, FColor::Red, false, -1.f);
 }
 

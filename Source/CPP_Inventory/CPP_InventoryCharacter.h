@@ -188,6 +188,9 @@ private:
 	UPROPERTY(EditAnywhere)
 	TArray<APickup*> Inventory;
 
+	/* Wall climbing*/
+	void CheckForWall();
+
 public:
 	/** Returns Mesh1P subobject **/
 	FORCEINLINE class USkeletalMeshComponent* GetMesh1P() const { return Mesh1P; }

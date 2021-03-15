@@ -46,7 +46,7 @@ class ACPP_InventoryCharacter : public ACharacter
 	/** Motion controller (left hand) */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, meta = (AllowPrivateAccess = "true"))
 	class UMotionControllerComponent* L_MotionController;
-
+	
 public:
 	ACPP_InventoryCharacter();
 
@@ -126,7 +126,7 @@ protected:
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
-	/** Handles stafing movement, left and right */
+	/** Handles strafing movement, left and right */
 	void MoveRight(float Val);
 
 	/**
@@ -170,7 +170,7 @@ protected:
 private:
 
 	/* Player's range of linetrace*/
-	float Range;
+	float TraceRange;
 
 	/* Toggles inventory*/
 	void ToggleInventory();
@@ -188,7 +188,7 @@ private:
 	UPROPERTY(EditAnywhere)
 	TArray<APickup*> Inventory;
 
-	/* Wall climbing*/
+	/* Wall running*/
 	void CheckForWall();
 
 public:

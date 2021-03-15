@@ -13,6 +13,7 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "DrawDebugHelpers.h"
+#include "GameFramework/Actor.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -58,7 +59,8 @@ ACPP_InventoryCharacter::ACPP_InventoryCharacter()
 	// Default offset from the character location for projectiles to spawn
 	GunOffset = FVector(100.0f, 0.0f, 10.0f);
 
-	Range = 250.f; // Default value
+	// Range of linetrace
+	TraceRange = 250.f; 
 
 	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
 	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
@@ -86,6 +88,7 @@ ACPP_InventoryCharacter::ACPP_InventoryCharacter()
 
 	// Uncomment the following line to turn motion controllers on by default:
 	//bUsingMotionControllers = true;
+
 }
 
 void ACPP_InventoryCharacter::BeginPlay()
@@ -93,7 +96,7 @@ void ACPP_InventoryCharacter::BeginPlay()
 	// Call the base class  
 	Super::BeginPlay();
 
-	//Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
+	// Attach gun mesh component to Skeleton, doing it here because the skeleton is not yet created in the constructor
 	FP_Gun->AttachToComponent(Mesh1P, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 
 	// Show or hide the two versions of the gun based on whether or not we're using motion controllers.
@@ -108,8 +111,10 @@ void ACPP_InventoryCharacter::BeginPlay()
 		Mesh1P->SetHiddenInGame(false, true);
 	}
 
+	// Inventory default size
 	Inventory.SetNum(4);
 
+	// Clearing the current interactable item
 	CurrentInteractable = nullptr;
 }
 
@@ -118,8 +123,10 @@ void ACPP_InventoryCharacter::Tick(float DeltaTime)
 
 	Super::Tick(DeltaTime);
 
+	// Initializing linetrace for interactables 
 	CheckForInteractables();
 
+	// Initializing linetrace for wall running
 	CheckForWall();
 
 }
@@ -163,58 +170,8 @@ void ACPP_InventoryCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ACPP_InventoryCharacter::LookUpAtRate);
 }
 
-void ACPP_InventoryCharacter::UpdateMoney(int32 Amount)
-{
-	Money += Amount;
-}
-
-bool ACPP_InventoryCharacter::AddItemToInventory(APickup* Item)
-{
-	if (Item != NULL)
-	{
-		const int32 AvaibleSlot = Inventory.Find(nullptr); // finds first slot with a nullptr in it
-		if (AvaibleSlot != INDEX_NONE)
-		{
-			Inventory[AvaibleSlot] = Item;
-			return true;
-		}
-		else
-		{
-			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("You cant carry any more items"));
-			return false;
-		}
-	}
-	else return false;
-}
-
-UTexture2D* ACPP_InventoryCharacter::GetThumbnailAtInventorySlot(int32 Slot)
-{
-	if (Inventory[Slot] != NULL)
-	{
-		return Inventory[Slot]->PickupThumbnail;
-	}
-	else return false;
-}
-
-FString ACPP_InventoryCharacter::GetItemNameAtInventorySlot(int32 Slot)
-{
-	if (Inventory[Slot] != NULL)
-	{
-		return Inventory[Slot]->ItemName;
-	}
-	return FString("None");
-}
-
-void ACPP_InventoryCharacter::UseItemAtInventorySlot(int32 Slot)
-{
-
-	if (Inventory[Slot] != NULL)
-	{
-		Inventory[Slot]->Use_Implementation();
-		Inventory[Slot] = NULL; // delete the item from inventory once used
-	}
-
-}
+//////////////////////////////////////////////////////////////////////////
+// Movement
 
 void ACPP_InventoryCharacter::OnFire()
 {
@@ -236,7 +193,7 @@ void ACPP_InventoryCharacter::OnFire()
 				// MuzzleOffset is in camera space, so transform it to world space before offsetting from the character location to find the final muzzle position
 				const FVector SpawnLocation = ((FP_MuzzleLocation != nullptr) ? FP_MuzzleLocation->GetComponentLocation() : GetActorLocation()) + SpawnRotation.RotateVector(GunOffset);
 
-				//Set Spawn Collision Handling Override
+				// Set Spawn Collision Handling Override
 				FActorSpawnParameters ActorSpawnParams;
 				ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
@@ -373,8 +330,59 @@ bool ACPP_InventoryCharacter::EnableTouchscreenMovement(class UInputComponent* P
 		//PlayerInputComponent->BindTouch(EInputEvent::IE_Repeat, this, &ACPP_InventoryCharacter::TouchUpdate);
 		return true;
 	}
-	
+
 	return false;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Inventory
+
+bool ACPP_InventoryCharacter::AddItemToInventory(APickup* Item)
+{
+	if (Item != NULL)
+	{
+		const int32 AvaibleSlot = Inventory.Find(nullptr); // finds first slot with a nullptr in it
+		if (AvaibleSlot != INDEX_NONE)
+		{
+			Inventory[AvaibleSlot] = Item;
+			return true;
+		}
+		else
+		{
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("You cant carry any more items"));
+			return false;
+		}
+	}
+	else return false;
+}
+
+UTexture2D* ACPP_InventoryCharacter::GetThumbnailAtInventorySlot(int32 Slot)
+{
+	if (Inventory[Slot] != NULL)
+	{
+		return Inventory[Slot]->PickupThumbnail;
+	}
+	else return false;
+}
+
+FString ACPP_InventoryCharacter::GetItemNameAtInventorySlot(int32 Slot)
+{
+	if (Inventory[Slot] != NULL)
+	{
+		return Inventory[Slot]->ItemName;
+	}
+	return FString("None");
+}
+
+void ACPP_InventoryCharacter::UseItemAtInventorySlot(int32 Slot)
+{
+
+	if (Inventory[Slot] != NULL)
+	{
+		Inventory[Slot]->Use_Implementation();
+		Inventory[Slot] = NULL; // delete the item from inventory once used
+	}
+
 }
 
 void ACPP_InventoryCharacter::ToggleInventory()
@@ -405,7 +413,7 @@ void ACPP_InventoryCharacter::CheckForInteractables()
 {
 	// Raycast start and end traces
 	FVector StartTrace = FirstPersonCameraComponent->GetComponentLocation();
-	FVector EndTrace = (FirstPersonCameraComponent->GetForwardVector() * Range) + StartTrace;
+	FVector EndTrace = (FirstPersonCameraComponent->GetForwardVector() * TraceRange) + StartTrace;
 	
 	// Hit result which stores the raycast hit
 	FHitResult HitResult;
@@ -430,30 +438,54 @@ void ACPP_InventoryCharacter::CheckForInteractables()
 		CurrentInteractable = PotentialInteractable;
 		HelpText = PotentialInteractable->InteractableHelpText;
 	}
-
 }
+
+void ACPP_InventoryCharacter::UpdateMoney(int32 Amount)
+{
+	Money += Amount;
+}
+
+//////////////////////////////////////////////////////////////////////////
+// Wall running
 
 void ACPP_InventoryCharacter::CheckForWall()
 {
+	// Location and rotation of traces
 	FVector Location;
 	FRotator Rotation;
-	FHitResult HitResult;
 
+	// Get location and rotation from player's view point
 	GetController()->GetPlayerViewPoint(Location, Rotation);
 
-	FVector Start = Location;
-	FVector End = Start + (Rotation.Vector() * 2000);
+	// Traces
+	FVector StartTrace = Location;
+	FVector EndTrace = StartTrace + (Rotation.Vector() * 120);
+	
+	// Hit result
+	FHitResult HitResult;
 
-	FCollisionQueryParams TraceParams;
+	// Collision query parameters
+	FCollisionQueryParams CQP;
+	CQP.AddIgnoredActor(this);
+	
+	// Boolean hit result of line trace
+	bool bHitResult = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, CQP);
 
-	GetWorld()->LineTraceSingleByChannel(HitResult, Start, End, ECC_Visibility, TraceParams);
+	// Debug
+	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 2.f, 5, 5.f);
 
-// 	if (HitResult.Actor->ActorHasTag("Climbable"))
-// 	{
-// 		GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Sosatb"));
-// 	}
+	// Check whether an actor(wall) has a tag
+	// It seems one always needs to check hit result, otherwise the engine crashes
+	if (bHitResult)
+	{
+		// Used for convenience
+		AActor* Target = HitResult.GetActor();
 
-	//DrawDebugLine(GetWorld(), Start, End, FColor::Red, false, 2.0f);
-	DrawDebugSphere(GetWorld(), Start, 50.0f, 10, FColor::Red, false, -1.f);
+		if (Target->ActorHasTag("Climbable"))
+		{
+			// Do stuff
+			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Climbable wall")); // debug
+		}
+	}
 }
 

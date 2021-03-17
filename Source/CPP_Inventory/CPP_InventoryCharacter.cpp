@@ -59,9 +59,6 @@ ACPP_InventoryCharacter::ACPP_InventoryCharacter()
 
 	// Range of linetrace
 	TraceRange = 250.f; 
-
-	// Note: The ProjectileClass and the skeletal mesh/anim blueprints for Mesh1P, FP_Gun, and VR_Gun 
-	// are set in the derived blueprint asset named MyCharacter to avoid direct content references in C++.
 }
 
 void ACPP_InventoryCharacter::BeginPlay()
@@ -101,10 +98,10 @@ void ACPP_InventoryCharacter::SetupPlayerInputComponent(class UInputComponent* P
 	check(PlayerInputComponent);
 
 	// Bind interaction events
-	InputComponent->BindAction("Interact", IE_Pressed, this, &ACPP_InventoryCharacter::Interact);
+	PlayerInputComponent->BindAction("Interact", IE_Pressed, this, &ACPP_InventoryCharacter::Interact);
 
 	// Bind inventory events
-	InputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ACPP_InventoryCharacter::ToggleInventory);
+	PlayerInputComponent->BindAction("ToggleInventory", IE_Pressed, this, &ACPP_InventoryCharacter::ToggleInventory);
 
 	// Bind jump events
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
@@ -119,7 +116,6 @@ void ACPP_InventoryCharacter::SetupPlayerInputComponent(class UInputComponent* P
 
 	// We have 2 versions of the rotation bindings to handle different kinds of devices differently
 	// "turn" handles devices that provide an absolute delta, such as a mouse.
-	// "turnrate" is for devices that we choose to treat as a rate of change, such as an analog joystick
 	PlayerInputComponent->BindAxis("Turn", this, &APawn::AddControllerYawInput);
 	PlayerInputComponent->BindAxis("LookUp", this, &APawn::AddControllerPitchInput);
 }
@@ -334,7 +330,7 @@ void ACPP_InventoryCharacter::CheckForWall()
 	bool bHitResult = GetWorld()->LineTraceSingleByChannel(HitResult, StartTrace, EndTrace, ECC_Visibility, CQP);
 
 	// Debug
-	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, 2.f, 5, 5.f);
+	DrawDebugLine(GetWorld(), StartTrace, EndTrace, FColor::Red, false, -1.f, 0, 2.f);
 
 	// Check whether an actor(wall) has a tag
 	// It seems one always needs to check hit result, otherwise the engine crashes
@@ -342,12 +338,24 @@ void ACPP_InventoryCharacter::CheckForWall()
 	{
 		// Used for convenience
 		AActor* Target = HitResult.GetActor();
+		bool bNearVerticalWall = false;
 
 		if (Target->ActorHasTag("Climbable"))
 		{
 			// Do stuff
+			bNearVerticalWall = true;
+			VerticalWallRun();
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Climbable wall")); // debug
+		}
+		else
+		{
+			bNearVerticalWall = false;
 		}
 	}
 }
 
+void ACPP_InventoryCharacter::VerticalWallRun()
+{
+	
+	LaunchCharacter(FVector (0, 0, 1000), true, true);
+}

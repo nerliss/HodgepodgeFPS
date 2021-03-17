@@ -100,7 +100,7 @@ public:
 	void UseItemAtInventorySlot(int32 Slot);
 
 protected:
-	
+
 	/** Fires a projectile. */
 	void OnFire();
 
@@ -150,6 +150,9 @@ private:
 
 	/* Wall running*/
 	void CheckForWall();
+
+	/* Launches character up near a wall*/
+	void VerticalWallRun();
 
 public:
 	/** Returns Mesh1P subobject **/

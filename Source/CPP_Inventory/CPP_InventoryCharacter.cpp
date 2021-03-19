@@ -139,18 +139,18 @@ void ACPP_InventoryCharacter::OnFire()
 			FActorSpawnParameters ActorSpawnParams;
 			ActorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButDontSpawnIfColliding;
 
-			// spawn the projectile at the muzzle
+			// Spawn the projectile at the muzzle
 			World->SpawnActor<ACPP_InventoryProjectile>(ProjectileClass, SpawnLocation, SpawnRotation, ActorSpawnParams);
 		}
 	}
 
-	// try and play the sound if specified
+	// Try and play the sound if specified
 	if (FireSound != NULL)
 	{
 		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
 	}
 
-	// try and play a firing animation if specified
+	// Try and play a firing animation if specified
 	if (FireAnimation != NULL)
 	{
 		// Get the animation object for the arms mesh
@@ -338,24 +338,23 @@ void ACPP_InventoryCharacter::CheckForWall()
 	{
 		// Used for convenience
 		AActor* Target = HitResult.GetActor();
-		bool bNearVerticalWall = false;
 
 		if (Target->ActorHasTag("Climbable"))
 		{
 			// Do stuff
-			bNearVerticalWall = true;
-			VerticalWallRun();
+			InputComponent->BindAction("VerticalWallRun", IE_Pressed, this, &ACPP_InventoryCharacter::VerticalWallRun);
+			// VerticalWallRun();
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Climbable wall")); // debug
 		}
 		else
 		{
-			bNearVerticalWall = false;
+			InputComponent->RemoveActionBinding(14);
 		}
 	}
 }
 
+// Vertical wall run function
 void ACPP_InventoryCharacter::VerticalWallRun()
 {
-	
-	LaunchCharacter(FVector (0, 0, 1000), true, true);
+	LaunchCharacter(FVector (0, 0, 900), true, true);
 }

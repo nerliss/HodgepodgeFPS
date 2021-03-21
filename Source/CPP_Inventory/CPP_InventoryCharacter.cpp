@@ -317,7 +317,7 @@ void ACPP_InventoryCharacter::CheckForWall()
 
 	// Traces
 	FVector StartTrace = Location;
-	FVector EndTrace = StartTrace + (Rotation.Vector() * 130);
+	FVector EndTrace = StartTrace + (Rotation.Vector() * 135);
 	
 	// Hit result
 	FHitResult HitResult;

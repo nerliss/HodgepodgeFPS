@@ -317,7 +317,7 @@ void ACPP_InventoryCharacter::CheckForWall()
 
 	// Traces
 	FVector StartTrace = Location;
-	FVector EndTrace = StartTrace + (Rotation.Vector() * 135);
+	FVector EndTrace = StartTrace + (Rotation.Vector() * 130);
 	
 	// Hit result
 	FHitResult HitResult;
@@ -342,13 +342,8 @@ void ACPP_InventoryCharacter::CheckForWall()
 		if (Target->ActorHasTag("Climbable"))
 		{
 			// Do stuff
-			InputComponent->BindAction("VerticalWallRun", IE_Pressed, this, &ACPP_InventoryCharacter::VerticalWallRun);
-			// VerticalWallRun();
+			VerticalWallRun();
 			GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Red, TEXT("Climbable wall")); // debug
-		}
-		else
-		{
-			InputComponent->RemoveActionBinding(14);
 		}
 	}
 }

@@ -351,5 +351,5 @@ void ACPP_InventoryCharacter::CheckForWall()
 // Vertical wall run function
 void ACPP_InventoryCharacter::VerticalWallRun()
 {
-	LaunchCharacter(FVector (0, 0, 850), true, true);
+	LaunchCharacter(FVector (0, 0, 870), true, true);
 }
